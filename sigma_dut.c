@@ -423,7 +423,7 @@ static void process_cmd(struct sigma_dut *dut, struct sigma_conn *conn,
 	sigma_dut_summary(dut, "CAPI cmd: %s", buf);
 	snprintf(txt, sizeof(txt), "NOTE CAPI:%s", buf);
 	txt[sizeof(txt) - 1] = '\0';
-	wpa_command(get_main_ifname(dut), txt);
+	//wpa_command(get_main_ifname(dut), txt);
 
 	memset(&c, 0, sizeof(c));
 	cmd = buf;

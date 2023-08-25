@@ -2453,8 +2453,13 @@ static enum sigma_cmd_result cmd_sta_set_psk(struct sigma_dut *dut,
 		if (set_network_quoted(ifname, id, "sae_password", val) < 0)
 			return -2;
 	} else {
-		if (set_network_quoted(ifname, id, "psk", val) < 0)
+		if ((strlen(val) == 64) &&
+		    (set_network(ifname, id, "psk", val) < 0))
 			return -2;
+		else if (set_network_quoted(ifname, id, "psk", val) < 0)
+		{
+			return -2;
+		}
 	}
 
 	val = get_param(cmd, "PasswordId");

@@ -9327,6 +9327,53 @@ skip_vht_parameters_set:
 				buf);
 	}
 
+	if (dut->ap_channel > 14) {
+		int len, center_channel;
+
+		len = snprintf(buf, sizeof(buf), "iw %s scan freq ", ifname);
+
+		switch (dut->ap_chwidth) {
+		case AP_80:
+			center_channel = get_oper_centr_freq_seq_idx(dut, 80, dut->ap_channel);
+			len += snprintf(buf + len, sizeof(buf) - len, "%d %d %d %d",
+					get_5g_channel_freq(center_channel - 6),
+					get_5g_channel_freq(center_channel - 2),
+					get_5g_channel_freq(center_channel + 2),
+					get_5g_channel_freq(center_channel + 6));
+			break;
+		case AP_40:
+			if (is_ht40plus_chan(dut->ap_channel))
+				len += snprintf(buf + len, sizeof(buf) - len, "%d %d",
+						get_5g_channel_freq(dut->ap_channel),
+						get_5g_channel_freq(dut->ap_channel + 4));
+			else
+				len += snprintf(buf + len, sizeof(buf) - len, "%d %d",
+						get_5g_channel_freq(dut->ap_channel - 4),
+						get_5g_channel_freq(dut->ap_channel));
+			break;
+		case AP_20:
+		case AP_AUTO:
+			len += snprintf(buf + len, sizeof(buf) - len,
+					"%d", get_5g_channel_freq(dut->ap_channel));
+			break;
+		default:
+			/* full scan */
+			buf[len - 6] = '\0';
+			len -= 6;
+			break;
+		}
+
+		snprintf(buf + len, sizeof(buf) - len, " > /dev/null");
+
+		sigma_dut_print(dut, DUT_MSG_DEBUG, "external debug log:\n%s",
+				buf);
+		if (system(buf) != 0) {
+			send_resp(dut, conn, SIGMA_ERROR,
+				  "errorCode,Failed to start hostapd");
+			return 0;
+		}
+	}
+
 	if (drv == DRIVER_QNXNTO) {
 		snprintf(buf, sizeof(buf),
 			 "hostapd -B %s%s%s %s%s %s/sigma_dut-ap.conf",
